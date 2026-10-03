@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="My Daily Planner & To-Do List - Plan your day, track priorities, set reminders, and boost productivity with vanilla JavaScript.">
+    <title>My Daily Planner & To-Do List</title>
+    
+    <!-- Google Fonts: Inter and Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Toast Notification Container for friendly alerts -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- Main Application Wrapper -->
+    <div class="app-container">
+        
+        <!-- ==========================================
+             1. HEADER SECTION
+             ========================================== -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-branding">
+                    <div class="logo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                            <circle cx="12" cy="12" r="4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="app-title">My Daily Planner</h1>
+                        <p class="greeting-text" id="greetingText">Plan your day, stay productive.</p>
+                    </div>
+                </div>
+
+                <div class="header-meta">
+                    <div class="live-clock-card">
+                        <span class="live-date" id="liveDate">Loading date...</span>
+                        <span class="live-time" id="liveTime">00:00:00</span>
+                    </div>
+                    <button id="notificationPermissionBtn" class="btn-icon-text" title="Enable browser alerts for task reminders">
+                        <span class="bell-icon">🔔</span>
+                        <span id="notificationBtnText">Enable Alerts</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==========================================
+             5. DAILY SUMMARY (STATISTICS DASHBOARD)
+             ========================================== -->
+        <section class="summary-section" aria-label="Daily Task Summary">
+            <div class="stats-grid">
+                <!-- Total Tasks -->
+                <div class="stat-card stat-total">
+                    <div class="stat-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Tasks</span>
+                        <span class="stat-value" id="totalTasksCount">0</span>
+                    </div>
+                </div>
+
+                <!-- Pending Tasks -->
+                <div class="stat-card stat-pending">
+                    <div class="stat-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Pending</span>
+                        <span class="stat-value" id="pendingTasksCount">0</span>
+                    </div>
+                </div>
+
+                <!-- Completed Tasks -->
+                <div class="stat-card stat-completed">
+                    <div class="stat-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Completed</span>
+                        <span class="stat-value" id="completedTasksCount">0</span>
+                    </div>
+                </div>
+
+                <!-- High Priority Tasks -->
+                <div class="stat-card stat-high-priority">
+                    <div class="stat-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">High Priority</span>
+                        <span class="stat-value" id="highPriorityTasksCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productivity Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar-header">
+                    <span>Daily Progress</span>
+                    <span id="progressPercentage">0% Completed</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             MAIN CONTENT GRID (Form & Task List)
+             ========================================== -->
+        <main class="main-layout">
+
+            <!-- ==========================================
+                 2. ADD / EDIT TASK FORM SECTION
+                 ========================================== -->
+            <aside class="form-column">
+                <div class="card form-card">
+                    <div class="form-header">
+                        <h2 id="formTitle" class="form-title">
+                            <span id="formIcon">➕</span> Add New Task
+                        </h2>
+                        <span id="editBadge" class="badge badge-edit hidden">Editing Mode</span>
+                    </div>
+
+                    <!-- Validation Error Message Alert Box -->
+                    <div id="formErrorMessage" class="alert-box error-alert hidden" role="alert">
+                        <span class="alert-icon">⚠️</span>
+                        <span id="errorMessageText">Please fill in required fields.</span>
+                    </div>
+
+                    <form id="taskForm" novalidate>
+                        <!-- Hidden field to hold task ID during editing -->
+                        <input type="hidden" id="taskIdInput">
+
+                        <!-- Task Title Input -->
+                        <div class="form-group">
+                            <label for="taskTitleInput" class="form-label">
+                                Task Title <span class="required-star">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="taskTitleInput" 
+                                class="form-control" 
+                                placeholder="e.g. Finish JavaScript Assignment" 
+                                maxlength="80"
+                                required
+                            >
+                        </div>
+
+                        <!-- Description Input -->
+                        <div class="form-group">
+                            <label for="taskDescriptionInput" class="form-label">Description</label>
+                            <textarea 
+                                id="taskDescriptionInput" 
+                                class="form-control" 
+                                rows="3" 
+                                placeholder="Add any details, steps, or notes..."
+                                maxlength="240"
+                            ></textarea>
+                        </div>
+
+                        <!-- Date and Time Row -->
+                        <div class="form-row">
+                            <div class="form-group form-col">
+                                <label for="taskDateInput" class="form-label">
+                                    Date <span class="required-star">*</span>
+                                </label>
+                                <input 
+                                    type="date" 
+                                    id="taskDateInput" 
+                                    class="form-control" 
+                                    required
+                                >
+                            </div>
+                            <div class="form-group form-col">
+                                <label for="taskTimeInput" class="form-label">
+                                    Time <span class="required-star">*</span>
+                                </label>
+                                <input 
+                                    type="time" 
+                                    id="taskTimeInput" 
+                                    class="form-control" 
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Priority and Category Row -->
+                        <div class="form-row">
+                            <div class="form-group form-col">
+                                <label for="taskPrioritySelect" class="form-label">Priority</label>
+                                <select id="taskPrioritySelect" class="form-control custom-select">
+                                    <option value="Low">🟢 Low</option>
+                                    <option value="Medium" selected>🟡 Medium</option>
+                                    <option value="High">🔴 High</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group form-col">
+                                <label for="taskCategorySelect" class="form-label">Category</label>
+                                <select id="taskCategorySelect" class="form-control custom-select">
+                                    <option value="Study" selected>📚 Study</option>
+                                    <option value="Work">💼 Work</option>
+                                    <option value="Personal">👤 Personal</option>
+                                    <option value="Exercise">🏃 Exercise</option>
+                                    <option value="Other">📌 Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Reminder Checkbox -->
+                        <div class="form-group reminder-group">
+                            <label class="checkbox-label" for="taskReminderCheckbox">
+                                <input type="checkbox" id="taskReminderCheckbox" class="custom-checkbox">
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-text">
+                                    <strong>Set Reminder</strong>
+                                    <small class="checkbox-subtext">Alert me when it's time for this task</small>
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="form-actions">
+                            <button type="submit" id="submitTaskBtn" class="btn btn-primary">
+                                <span id="submitBtnIcon">➕</span>
+                                <span id="submitBtnText">Add Task</span>
+                            </button>
+                            <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- ==========================================
+                 3, 6, 7. TASK LIST, FILTERS & SEARCH
+                 ========================================== -->
+            <section class="tasks-column" aria-label="Task Management List">
+                <div class="card tasks-card">
+                    
+                    <!-- Search and Controls Toolbar -->
+                    <div class="tasks-toolbar">
+                        <!-- 7. SEARCH INPUT -->
+                        <div class="search-wrap">
+                            <span class="search-icon">🔍</span>
+                            <input 
+                                type="text" 
+                                id="taskSearchInput" 
+                                class="search-control" 
+                                placeholder="Search tasks by title or keyword..."
+                                aria-label="Search tasks"
+                            >
+                            <button id="clearSearchBtn" class="clear-search-btn hidden" title="Clear search">✕</button>
+                        </div>
+
+                        <!-- Category Quick Filter Dropdown -->
+                        <div class="category-filter-wrap">
+                            <select id="filterCategorySelect" class="form-control filter-category-select" aria-label="Filter by Category">
+                                <option value="All">All Categories</option>
+                                <option value="Study">📚 Study</option>
+                                <option value="Work">💼 Work</option>
+                                <option value="Personal">👤 Personal</option>
+                                <option value="Exercise">🏃 Exercise</option>
+                                <option value="Other">📌 Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 6. FILTER BUTTONS -->
+                    <div class="filter-buttons-bar" role="group" aria-label="Filter tasks by status">
+                        <button class="filter-btn active" data-filter="All" id="filterAllBtn">
+                            All <span class="filter-count" id="countAll">0</span>
+                        </button>
+                        <button class="filter-btn" data-filter="Pending" id="filterPendingBtn">
+                            Pending <span class="filter-count" id="countPending">0</span>
+                        </button>
+                        <button class="filter-btn" data-filter="Completed" id="filterCompletedBtn">
+                            Completed <span class="filter-count" id="countCompleted">0</span>
+                        </button>
+                        <button class="filter-btn" data-filter="High" id="filterHighBtn">
+                            High Priority <span class="filter-count" id="countHigh">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Task List Header & Task Count -->
+                    <div class="tasks-list-header">
+                        <h3 class="list-heading" id="currentViewHeading">All Tasks</h3>
+                        <span class="tasks-showing-badge" id="tasksShowingBadge">Showing 0 tasks</span>
+                    </div>
+
+                    <!-- 3. TASK CARDS CONTAINER -->
+                    <div id="tasksListContainer" class="tasks-list" role="list">
+                        <!-- Dynamic task cards will be rendered here by JavaScript -->
+                    </div>
+
+                    <!-- Empty State (When no tasks exist or match search) -->
+                    <div id="emptyState" class="empty-state hidden">
+                        <div class="empty-illustration">📋</div>
+                        <h4 class="empty-title" id="emptyTitle">No tasks found</h4>
+                        <p class="empty-desc" id="emptyDesc">Add your first task using the form on the left to start planning your day!</p>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <!-- Application Footer -->
+        <footer class="app-footer">
+            <p><strong>My Daily Planner</strong> &bull; Crafted for learning modern vanilla JavaScript &bull; Storage active in your browser</p>
+        </footer>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="script.js"></script>
+</body>
+</html>
